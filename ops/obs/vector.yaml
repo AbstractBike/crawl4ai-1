@@ -1,0 +1,26 @@
+# Vector log pipeline for crawl4ai.
+# Journald logs are picked up automatically by otelcol's journald receiver.
+# Only add entries here for file-based log sources.
+
+sources:
+  # Uncomment for file-based logs:
+  # crawl4ai_logs:
+  #   type: file
+  #   include:
+  #     - /var/lib/crawl4ai/logs/*.log
+  #   read_from: beginning
+
+transforms:
+  crawl4ai_parse:
+    type: remap
+    inputs: []  # add sources above
+    source: |
+      .service = "crawl4ai"
+      # parse JSON logs:
+      # . = parse_json!(.message)
+      # add host label:
+      .host = get_hostname!()
+
+sinks:
+  # crawl4ai logs go to VictoriaLogs via the shared otelcol pipeline
+  # No explicit sink needed if using journald receiver

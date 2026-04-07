@@ -1,0 +1,35 @@
+groups:
+  - name: crawl4ai
+    rules:
+      - alert: Crawl4aiDown
+        expr: up{job="crawl4ai"} == 0
+        for: 5m
+        labels:
+          severity: critical
+          service: crawl4ai
+        annotations:
+          summary: "crawl4ai is down"
+          description: "The crawl4ai service has been unreachable for 5 minutes."
+
+      - alert: Crawl4aiHighErrorRate
+        expr: |
+          rate(http_requests_total{job="crawl4ai",status=~"5.."}[5m])
+          / rate(http_requests_total{job="crawl4ai"}[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          service: crawl4ai
+        annotations:
+          summary: "crawl4ai error rate above 5%"
+          description: "Error rate is {{ $value | humanizePercentage }} over the last 5 minutes."
+
+      - alert: Crawl4aiHighLatency
+        expr: |
+          histogram_quantile(0.99, rate(http_request_duration_seconds_bucket{job="crawl4ai"}[5m])) > 1
+        for: 5m
+        labels:
+          severity: warning
+          service: crawl4ai
+        annotations:
+          summary: "crawl4ai p99 latency above 1s"
+          description: "p99 latency is {{ $value | humanizeDuration }}."
